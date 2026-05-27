@@ -27,11 +27,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (!loading && !session) navigate({ to: "/login" });
   }, [loading, session, navigate]);
   if (loading || !session) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-background text-muted-foreground text-sm">
-        Loading…
-      </div>
-    );
+    return <BrandLoader label="Chargement…" />;
   }
   return <DashboardShell>{children}</DashboardShell>;
 }
