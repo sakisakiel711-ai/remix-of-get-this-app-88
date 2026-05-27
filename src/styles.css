@@ -2040,3 +2040,24 @@ input[type="file"]::file-selector-button:hover { filter: brightness(1.05); trans
 }
 
 
+
+/* ============ BrandLoader (TikTok-style spinning logo) ============ */
+@keyframes brand-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes brand-bob {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.94); }
+}
+@keyframes brand-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.95); }
+  50% { opacity: 0.95; transform: scale(1.08); }
+}
+@keyframes brand-pulse-text {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.animate-brand-spin { animation: brand-spin 1.4s linear infinite; }
+.animate-brand-bob { animation: brand-bob 1.2s ease-in-out infinite; }
+.animate-brand-pulse { animation: brand-pulse 1.6s ease-in-out infinite; }
+.animate-brand-pulse-text { animation: brand-pulse-text 1.4s ease-in-out infinite; }
