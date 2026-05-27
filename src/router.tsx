@@ -28,6 +28,7 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 30_000,
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
+    defaultPendingComponent: () => <BrandLoader label="Chargement…" />,
   });
 
 
