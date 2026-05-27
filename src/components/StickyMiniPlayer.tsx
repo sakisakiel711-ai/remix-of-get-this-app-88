@@ -253,10 +253,13 @@ function MiniBar(props: BarProps) {
                   <img
                     src={track.cover_url}
                     alt=""
+                    loading="eager"
+                    decoding="async"
                     className={`relative w-12 h-12 rounded-lg object-cover shadow-glow transition-transform duration-700 animate-scale-in ${
                       isPlaying && !isBuffering && !radioLocked ? "animate-vinyl-spin" : ""
                     }`}
                   />
+
                 ) : (
                   <div className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent-cyan grid place-items-center">
                     <Music2 className="w-5 h-5 text-white" />

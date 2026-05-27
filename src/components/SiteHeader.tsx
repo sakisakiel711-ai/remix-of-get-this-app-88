@@ -48,12 +48,13 @@ export function SiteHeader() {
       <div className="mx-auto max-w-[1400px] px-6 flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2.5 shrink-0" aria-label="VinaSound home">
           <span className="grid place-items-center w-11 h-11 shrink-0">
-            <img src={logoUrl} alt="VinaSound" className="w-full h-full object-contain drop-shadow-lg" />
+            <img src={logoUrl} alt="VinaSound" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-contain drop-shadow-lg" />
           </span>
           <span className="font-display text-xl font-extrabold tracking-tight">
             Vina<span className="text-gradient-primary">Sound</span>
           </span>
         </Link>
+
 
         <nav className="hidden md:flex items-center gap-7 ml-6 text-sm font-semibold uppercase tracking-wider">
           <Link to="/" className="text-primary relative after:content-[''] after:absolute after:left-0 after:-bottom-1.5 after:w-full after:h-0.5 after:bg-primary after:rounded-full">Accueil</Link>
@@ -102,8 +103,9 @@ export function SiteHeader() {
                 className="hidden sm:flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-border/60 hover:border-primary transition"
               >
                 <span className="grid place-items-center w-7 h-7 rounded-full overflow-hidden ring-1 ring-border/60">
-                  <img src={avatarSrc} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img src={avatarSrc} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 </span>
+
                 <span className="text-xs">Ma musique</span>
               </Link>
               <button

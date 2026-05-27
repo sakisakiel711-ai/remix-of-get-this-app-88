@@ -1,9 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Music2, Pause, Play, Lock, Sparkles, ShoppingBag, Check } from "lucide-react";
+import { useEffect } from "react";
 import { usePlayerStore, currentTrack as currentTrackSelector } from "@/stores/player";
 import { gradientFor } from "@/components/PageScaffold";
 import { formatPlays, formatPrice, type RealTrack } from "@/lib/tracks-data";
 import { useAuth } from "@/hooks/use-auth";
+import { SmartImage, preloadImages } from "@/components/SmartImage";
+
 
 export function RealTrackCard({
   track,
@@ -60,17 +63,18 @@ export function RealTrackCard({
     >
       <div className={`cover-3d relative aspect-square overflow-hidden bg-gradient-to-br ${grad}`}>
         {track.cover_url ? (
-          <img
+          <SmartImage
             src={track.cover_url}
             alt={track.title}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover"
+            wrapperClassName="absolute inset-0"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="absolute inset-0 grid place-items-center">
             <Music2 className="w-10 h-10 text-white/80" />
           </div>
         )}
+
 
         {/* Pricing badge top-left */}
         <span
@@ -146,6 +150,10 @@ export function RealTrackGrid({
   tracks: RealTrack[];
   ownedIds?: Set<string>;
 }) {
+  // Pre-decode every cover during idle time so scroll/back-nav is instant.
+  useEffect(() => {
+    preloadImages(tracks.map((t) => t.cover_url));
+  }, [tracks]);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-5">
       {tracks.map((t) => (
@@ -154,3 +162,4 @@ export function RealTrackGrid({
     </div>
   );
 }
+

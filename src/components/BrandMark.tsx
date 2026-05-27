@@ -14,8 +14,12 @@ export function BrandMark({ className = "", size = 44, alt = "VinaSound" }: Bran
       alt={alt}
       width={size}
       height={size}
+      loading="eager"
+      decoding="async"
+      fetchPriority="high"
       className={`object-contain ${className}`}
       style={{ width: size, height: size }}
     />
+
   );
 }
