@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { DashboardShell } from "@/components/DashboardSidebar";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BrandLoader } from "@/components/BrandLoader";
 import { Play, MoreHorizontal } from "lucide-react";
 
 export function slugify(s: string) {
