@@ -246,6 +246,60 @@ function ProfilePage() {
         }
       />
 
+      {needsFee && (
+        <div className="mb-6 rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-surface/40 to-surface/40 p-6">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-primary/15 p-3 shrink-0">
+              <Lock className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-display text-xl font-extrabold uppercase tracking-tight">
+                Frais de création de profil artiste
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pour limiter les comptes inactifs et garantir un stockage de qualité pour
+                chaque artiste, la création d'un profil artiste nécessite un paiement unique
+                de <span className="font-bold text-foreground">{ARTIST_FEE_XOF.toLocaleString("fr-FR")} XOF</span>.
+                Une fois payé, tu pourras créer ton profil et publier ta musique sans limite.
+              </p>
+
+              {feeErr && <p className="text-sm text-destructive mt-3">{feeErr}</p>}
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={payFeeFlutterwave}
+                  disabled={payingFlw || payingWallet}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold disabled:opacity-60 hover:opacity-90"
+                >
+                  {payingFlw ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                  Payer {ARTIST_FEE_XOF.toLocaleString("fr-FR")} XOF
+                </button>
+                <button
+                  onClick={payFeeWallet}
+                  disabled={payingWallet || payingFlw}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold hover:bg-surface/70 disabled:opacity-60"
+                >
+                  {payingWallet ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
+                  Payer depuis mon wallet
+                </button>
+                {feeStatus?.pendingLink && (
+                  <a
+                    href={feeStatus.pendingLink}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/50 px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
+                  >
+                    Reprendre paiement en cours
+                  </a>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">
+                Paiement sécurisé via Flutterwave (Mobile Money, carte, etc.) ou via ton wallet VinaSound.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Cover preview */}
       <div className="rounded-xl overflow-hidden border border-border mb-6">
         <Dropzone accept="image/*" onFiles={(f) => { setCoverFile(f[0]); persistImage("cover", f[0]); }} className="rounded-none border-0">
