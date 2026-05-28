@@ -127,6 +127,11 @@ function ProfilePage() {
 
   async function save() {
     if (!user) return;
+    // Block creation of a new artist profile if the 3000 XOF fee is unpaid.
+    if (!artist && !feeStatus?.hasPaid) {
+      setErr("Tu dois payer les frais de création (3 000 XOF) avant de créer ton profil artiste.");
+      return;
+    }
     setErr(null);
     setSaving(true);
     try {
