@@ -370,11 +370,12 @@ function ProfilePage() {
           <div className="flex items-center gap-3">
             <button
               onClick={save}
-              disabled={saving || !name.trim()}
+              disabled={saving || !name.trim() || needsFee}
+              title={needsFee ? "Paie d'abord les frais de création de profil artiste" : undefined}
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-bold disabled:opacity-60 hover:opacity-90"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              <span>{artist ? "Save changes" : "Create profile"}</span>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : needsFee ? <Lock className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+              <span>{artist ? "Save changes" : needsFee ? "Paiement requis" : "Create profile"}</span>
             </button>
             {savedFlash && (
               <span className="inline-flex items-center gap-1 text-emerald-400 text-sm font-semibold animate-fade-in">
