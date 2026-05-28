@@ -1,15 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AuthGate, PageHeader, gradientFor } from "@/components/PageScaffold";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyArtist, slugify, uploadToBucket } from "@/lib/artist-helpers";
 import { Dropzone } from "@/components/Dropzone";
-import { Camera, Check, Loader2, Sparkles, ExternalLink, Shield } from "lucide-react";
+import { Camera, Check, Loader2, Sparkles, ExternalLink, Shield, Lock, CreditCard, Wallet } from "lucide-react";
 import { avatarOrDefault } from "@/lib/default-avatar";
 import { coverOrDefault } from "@/lib/default-cover";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import {
+  getArtistFeeStatus,
+  createArtistFeePayment,
+  payArtistFeeWithWallet,
+  ARTIST_FEE_XOF,
+} from "@/lib/artist-fee.functions";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
