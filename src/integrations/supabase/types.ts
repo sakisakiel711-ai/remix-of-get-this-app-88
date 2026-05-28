@@ -119,6 +119,48 @@ export type Database = {
         }
         Relationships: []
       }
+      artist_creation_fees: {
+        Row: {
+          amount_xof: number
+          created_at: string
+          flw_payment_link: string | null
+          flw_tx_id: string | null
+          flw_tx_ref: string | null
+          id: string
+          method: string | null
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_xof?: number
+          created_at?: string
+          flw_payment_link?: string | null
+          flw_tx_id?: string | null
+          flw_tx_ref?: string | null
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_xof?: number
+          created_at?: string
+          flw_payment_link?: string | null
+          flw_tx_id?: string | null
+          flw_tx_ref?: string | null
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       artist_daily_stats: {
         Row: {
           artist_id: string
@@ -1763,6 +1805,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      pay_artist_fee_with_wallet: {
+        Args: { _user_id: string }
+        Returns: {
+          amount_xof: number
+          new_balance_xof: number
+        }[]
       }
       reject_artist_verification: {
         Args: { _reason?: string; _request_id: string }
