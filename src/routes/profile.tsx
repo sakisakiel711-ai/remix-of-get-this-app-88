@@ -177,10 +177,42 @@ function ProfilePage() {
     }
   }
 
-  if (isLoading) {
+  async function payFeeFlutterwave() {
+    setFeeErr(null);
+    setPayingFlw(true);
+    try {
+      const res = await createFeePaymentFn();
+      if (res.alreadyPaid) {
+        qc.invalidateQueries({ queryKey: ["artist-fee-status", user?.id] });
+        return;
+      }
+      if (res.link) window.location.href = res.link;
+    } catch (e: any) {
+      setFeeErr(e.message ?? "Échec du paiement");
+    } finally {
+      setPayingFlw(false);
+    }
+  }
+
+  async function payFeeWallet() {
+    setFeeErr(null);
+    setPayingWallet(true);
+    try {
+      await payFeeWalletFn();
+      qc.invalidateQueries({ queryKey: ["artist-fee-status", user?.id] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) {
+      setFeeErr(e.message ?? "Échec du paiement");
+    } finally {
+      setPayingWallet(false);
+    }
+  }
+
+  if (isLoading || (loadingFee && !artist)) {
     return <p className="text-sm text-muted-foreground">Loading profile…</p>;
   }
 
+  const needsFee = !artist && !feeStatus?.hasPaid;
   const grad = gradientFor(name || "vinasound");
   const profileAvatar = avatarOrDefault(avatarPreview, user?.id ?? null);
 
