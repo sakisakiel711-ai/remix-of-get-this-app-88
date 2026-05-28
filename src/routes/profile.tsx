@@ -1,15 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AuthGate, PageHeader, gradientFor } from "@/components/PageScaffold";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyArtist, slugify, uploadToBucket } from "@/lib/artist-helpers";
 import { Dropzone } from "@/components/Dropzone";
-import { Camera, Check, Loader2, Sparkles, ExternalLink, Shield } from "lucide-react";
+import { Camera, Check, Loader2, Sparkles, ExternalLink, Shield, Lock, CreditCard, Wallet } from "lucide-react";
 import { avatarOrDefault } from "@/lib/default-avatar";
 import { coverOrDefault } from "@/lib/default-cover";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import {
+  getArtistFeeStatus,
+  createArtistFeePayment,
+  payArtistFeeWithWallet,
+  ARTIST_FEE_XOF,
+} from "@/lib/artist-fee.functions";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -35,6 +42,20 @@ function ProfilePage() {
     enabled: !!user?.id,
     queryFn: () => getMyArtist(user!.id),
   });
+
+  const feeStatusFn = useServerFn(getArtistFeeStatus);
+  const createFeePaymentFn = useServerFn(createArtistFeePayment);
+  const payFeeWalletFn = useServerFn(payArtistFeeWithWallet);
+
+  const { data: feeStatus, isLoading: loadingFee } = useQuery({
+    queryKey: ["artist-fee-status", user?.id],
+    enabled: !!user?.id && !artist,
+    queryFn: () => feeStatusFn(),
+  });
+
+  const [payingFlw, setPayingFlw] = useState(false);
+  const [payingWallet, setPayingWallet] = useState(false);
+  const [feeErr, setFeeErr] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -106,6 +127,11 @@ function ProfilePage() {
 
   async function save() {
     if (!user) return;
+    // Block creation of a new artist profile if the 3000 XOF fee is unpaid.
+    if (!artist && !feeStatus?.hasPaid) {
+      setErr("Tu dois payer les frais de création (3 000 XOF) avant de créer ton profil artiste.");
+      return;
+    }
     setErr(null);
     setSaving(true);
     try {
@@ -151,10 +177,42 @@ function ProfilePage() {
     }
   }
 
-  if (isLoading) {
+  async function payFeeFlutterwave() {
+    setFeeErr(null);
+    setPayingFlw(true);
+    try {
+      const res = await createFeePaymentFn();
+      if (res.alreadyPaid) {
+        qc.invalidateQueries({ queryKey: ["artist-fee-status", user?.id] });
+        return;
+      }
+      if (res.link) window.location.href = res.link;
+    } catch (e: any) {
+      setFeeErr(e.message ?? "Échec du paiement");
+    } finally {
+      setPayingFlw(false);
+    }
+  }
+
+  async function payFeeWallet() {
+    setFeeErr(null);
+    setPayingWallet(true);
+    try {
+      await payFeeWalletFn();
+      qc.invalidateQueries({ queryKey: ["artist-fee-status", user?.id] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) {
+      setFeeErr(e.message ?? "Échec du paiement");
+    } finally {
+      setPayingWallet(false);
+    }
+  }
+
+  if (isLoading || (loadingFee && !artist)) {
     return <p className="text-sm text-muted-foreground">Loading profile…</p>;
   }
 
+  const needsFee = !artist && !feeStatus?.hasPaid;
   const grad = gradientFor(name || "vinasound");
   const profileAvatar = avatarOrDefault(avatarPreview, user?.id ?? null);
 
@@ -187,6 +245,60 @@ function ProfilePage() {
           </div>
         }
       />
+
+      {needsFee && (
+        <div className="mb-6 rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-surface/40 to-surface/40 p-6">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-primary/15 p-3 shrink-0">
+              <Lock className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-display text-xl font-extrabold uppercase tracking-tight">
+                Frais de création de profil artiste
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pour limiter les comptes inactifs et garantir un stockage de qualité pour
+                chaque artiste, la création d'un profil artiste nécessite un paiement unique
+                de <span className="font-bold text-foreground">{ARTIST_FEE_XOF.toLocaleString("fr-FR")} XOF</span>.
+                Une fois payé, tu pourras créer ton profil et publier ta musique sans limite.
+              </p>
+
+              {feeErr && <p className="text-sm text-destructive mt-3">{feeErr}</p>}
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={payFeeFlutterwave}
+                  disabled={payingFlw || payingWallet}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold disabled:opacity-60 hover:opacity-90"
+                >
+                  {payingFlw ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                  Payer {ARTIST_FEE_XOF.toLocaleString("fr-FR")} XOF
+                </button>
+                <button
+                  onClick={payFeeWallet}
+                  disabled={payingWallet || payingFlw}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-bold hover:bg-surface/70 disabled:opacity-60"
+                >
+                  {payingWallet ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
+                  Payer depuis mon wallet
+                </button>
+                {feeStatus?.pendingLink && (
+                  <a
+                    href={feeStatus.pendingLink}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/50 px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
+                  >
+                    Reprendre paiement en cours
+                  </a>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">
+                Paiement sécurisé via Flutterwave (Mobile Money, carte, etc.) ou via ton wallet VinaSound.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Cover preview */}
       <div className="rounded-xl overflow-hidden border border-border mb-6">
@@ -258,11 +370,12 @@ function ProfilePage() {
           <div className="flex items-center gap-3">
             <button
               onClick={save}
-              disabled={saving || !name.trim()}
+              disabled={saving || !name.trim() || needsFee}
+              title={needsFee ? "Paie d'abord les frais de création de profil artiste" : undefined}
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-bold disabled:opacity-60 hover:opacity-90"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              <span>{artist ? "Save changes" : "Create profile"}</span>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : needsFee ? <Lock className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+              <span>{artist ? "Save changes" : needsFee ? "Paiement requis" : "Create profile"}</span>
             </button>
             {savedFlash && (
               <span className="inline-flex items-center gap-1 text-emerald-400 text-sm font-semibold animate-fade-in">
