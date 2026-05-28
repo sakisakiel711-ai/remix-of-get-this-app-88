@@ -151,6 +151,22 @@ export const Route = createFileRoute("/api/public/flutterwave-webhook")({
               _amount: amount,
             });
           }
+        } else if (meta?.kind === "artist_fee" && meta.user_id) {
+          // Frais de création profil artiste — idempotent via filtre status
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const dbAny = supabaseAdmin as any;
+          await dbAny
+            .from("artist_creation_fees")
+            .update({
+              status: "paid",
+              method: "flutterwave",
+              flw_tx_id: String(verified.data.id),
+              paid_at: now.toISOString(),
+              updated_at: now.toISOString(),
+            })
+            .eq("user_id", meta.user_id)
+            .eq("flw_tx_ref", verified.data.tx_ref)
+            .neq("status", "paid");
         } else {
           const planId = meta?.plan_id;
           const days = planId ? PLAN_DURATIONS[planId] : undefined;
