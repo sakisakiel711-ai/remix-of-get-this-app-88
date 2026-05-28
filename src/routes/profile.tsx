@@ -43,6 +43,20 @@ function ProfilePage() {
     queryFn: () => getMyArtist(user!.id),
   });
 
+  const feeStatusFn = useServerFn(getArtistFeeStatus);
+  const createFeePaymentFn = useServerFn(createArtistFeePayment);
+  const payFeeWalletFn = useServerFn(payArtistFeeWithWallet);
+
+  const { data: feeStatus, isLoading: loadingFee } = useQuery({
+    queryKey: ["artist-fee-status", user?.id],
+    enabled: !!user?.id && !artist,
+    queryFn: () => feeStatusFn(),
+  });
+
+  const [payingFlw, setPayingFlw] = useState(false);
+  const [payingWallet, setPayingWallet] = useState(false);
+  const [feeErr, setFeeErr] = useState<string | null>(null);
+
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
